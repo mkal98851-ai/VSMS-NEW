@@ -70,7 +70,7 @@ body{
 ::selection{background:var(--amber-soft);}
 a{color:inherit;}
 button{font-family:inherit;}
-.wrap{max-width:1680px;margin:0 auto;padding:0 24px;width:100%;}
+.wrap{max-width:none;margin:0 auto;padding:0 clamp(16px,3vw,56px);width:100%;}
 .wrap-narrow{max-width:640px;margin:0 auto;padding:0 20px;width:100%;}
 
 /* ---- topbar ---- */
@@ -79,7 +79,7 @@ button{font-family:inherit;}
   background:var(--panel);
   position:sticky;top:0;z-index:20;
 }
-.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1680px;margin:0 auto;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,3vw,56px);max-width:none;margin:0 auto;}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px;font-size:16px;user-select:none;-webkit-user-select:none;-moz-user-select:none;}
 .brand-dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px var(--amber-soft);flex-shrink:0;}
 .brand small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:1px;}
@@ -244,44 +244,17 @@ tbody tr:hover{background:var(--panel-2);}
 .empty .icon{font-size:34px;margin-bottom:10px;}
 
 /* ---- admin layout ---- */
-/* Rail collapses to icons-only (84px) and expands on hover, in the style
-   of a floating dock-style sidebar. It stays inside the normal grid flow
-   (unlike a position:fixed dock) so it keeps lining up with the rest of
-   the admin console — on hover it simply overflows its own 84px track
-   and floats above the content column via z-index. */
-.admin-layout{display:grid;grid-template-columns:84px 1fr;gap:22px;align-items:start;}
+.admin-layout{display:grid;grid-template-columns:210px 1fr;gap:22px;align-items:start;}
 @media (max-width:760px){.admin-layout{grid-template-columns:1fr;}}
-.admin-nav{
-  background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 10px;
-  position:sticky;top:78px;width:84px;overflow:hidden;white-space:nowrap;z-index:5;
-  box-shadow:0 24px 60px rgba(0,0,0,.28);
-  transition:width .35s ease,box-shadow .35s ease;
-}
-.admin-nav:hover{width:238px;box-shadow:0 28px 70px rgba(0,0,0,.4);}
-@media (max-width:760px){
-  .admin-nav{position:static;display:flex;overflow-x:auto;gap:6px;padding:8px;width:auto;border-radius:var(--radius);box-shadow:none;}
-  .admin-nav:hover{width:auto;box-shadow:none;}
-}
+.admin-nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px;position:sticky;top:78px;}
+@media (max-width:760px){.admin-nav{position:static;display:flex;overflow-x:auto;gap:6px;padding:8px;}}
 .admin-nav button{
-  display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:transparent;border:none;color:var(--muted);
-  padding:11px 9px;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:3px;white-space:nowrap;
-  transition:.2s background,.2s color;
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;border:none;color:var(--muted);
+  padding:10px 12px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:2px;white-space:nowrap;
 }
 @media (max-width:760px){.admin-nav button{width:auto;margin-bottom:0;}}
-.admin-nav button .ic{
-  width:38px;height:38px;flex-shrink:0;border-radius:11px;background:var(--panel-2);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;transition:.2s background,.2s color;
-}
-.admin-nav button .ic svg{width:18px;height:18px;}
-.admin-nav button .label{opacity:0;transition:opacity .15s ease;}
-.admin-nav:hover button .label{opacity:1;transition:opacity .25s ease .1s;}
-@media (max-width:760px){
-  .admin-nav button .label{opacity:1;transition:none;}
-}
 .admin-nav button:hover{background:var(--panel-2);color:var(--text);}
-.admin-nav button:hover .ic{background:var(--line-2);color:var(--text);}
 .admin-nav button.active{background:var(--amber-soft);color:var(--amber);}
-.admin-nav button.active .ic{background:var(--amber);color:#211404;}
 
 .item-row{
   display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
@@ -561,8 +534,10 @@ body{
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
-/* Admin nav — active glow */
+/* Admin nav — active glow + hover nudge */
 .admin-nav button.active{ box-shadow:inset 0 0 0 1px var(--amber-soft); }
+.admin-nav button{ transition:.15s background, .15s color, .15s transform; }
+.admin-nav button:hover{ transform:translateX(2px); }
 
 /* Score ring — pop-in entrance */
 .score-ring{ animation:ringPop .5s cubic-bezier(.34,1.56,.64,1) both; }
@@ -645,8 +620,7 @@ body{
   .q-edit-row .qtop{ flex-wrap:wrap; }
 
   /* admin section nav */
-  .admin-nav button{ font-size:12.5px; padding:9px 11px; gap:10px; }
-  .admin-nav button .ic{ width:32px; height:32px; border-radius:9px; }
+  .admin-nav button{ font-size:12.5px; padding:9px 11px; }
 
   /* results table — smaller but still fully legible, scrolls horizontally */
   table{ font-size:12.5px; }
@@ -1347,79 +1321,6 @@ function fileToDataUrl(file, opt){
     };
     fr.readAsDataURL(file);
   });
-}
-/* ---- Storage-backed uploads for header/footer/hero/site backgrounds and hero-box media ----
-   These used to be saved as base64 text directly in the settings row. That silently broke for
-   anything but small files: a video easily blew past both the browser's localStorage quota and
-   Supabase's request-size limit, so the save failed quietly and the video vanished on refresh.
-   Uploading the actual file to Supabase Storage and saving only its (short) URL fixes both. */
-const STORAGE_BUCKET = 'site-media';
-function canvasResizeToBlob(file, opt){
-  return new Promise((resolve, reject)=>{
-    if(!file || !/^image\//.test(file.type||'')){ reject(new Error('Please choose an image file (PNG, JPG or WebP).')); return; }
-    const fr = new FileReader();
-    fr.onerror = ()=>reject(new Error('This file could not be read.'));
-    fr.onload = ()=>{
-      const img = new Image();
-      img.onerror = ()=>reject(new Error('This image could not be opened. Please try a PNG or JPG.'));
-      img.onload = ()=>{
-        try{
-          let sw = img.naturalWidth || 512, sh = img.naturalHeight || 512;
-          const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-          ctx.imageSmoothingQuality = 'high';
-          const r = Math.min(1, opt.maxW/sw, opt.maxH/sh);
-          c.width = Math.max(1, Math.round(sw*r)); c.height = Math.max(1, Math.round(sh*r));
-          ctx.fillStyle = '#0A0F1C'; ctx.fillRect(0,0,c.width,c.height);
-          ctx.drawImage(img, 0, 0, c.width, c.height);
-          c.toBlob(blob=>{ blob ? resolve(blob) : reject(new Error('This image could not be processed.')); }, 'image/jpeg', opt.quality||0.8);
-        }catch(e){ reject(e); }
-      };
-      img.src = fr.result;
-    };
-    fr.readAsDataURL(file);
-  });
-}
-async function uploadToStorage(fileOrBlob, keyHint, ext){
-  const path = `${keyHint}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-  const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, fileOrBlob, {
-    upsert: true, contentType: fileOrBlob.type || undefined, cacheControl: '31536000'
-  });
-  if(upErr){
-    const raw = upErr.message || '';
-    throw new Error(/bucket not found/i.test(raw)
-      ? 'Storage isn\'t set up yet for this site. Please run the storage setup SQL (see "For your developer" below), then try again.'
-      : (raw || 'Upload failed. Please try again.'));
-  }
-  const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-  return pub.publicUrl;
-}
-async function uploadImageToStorage(file, keyHint, opt){
-  const blob = await canvasResizeToBlob(file, opt);
-  return uploadToStorage(blob, keyHint, 'jpg');
-}
-async function uploadVideoToStorage(file, keyHint){
-  if(!file || !/^video\//.test(file.type||'')) throw new Error('Please choose a video file (MP4 or WebM).');
-  if(file.size > 20*1024*1024) throw new Error('This video is larger than 20 MB. Please trim it or compress it first — smaller clips load faster for guards on mobile data.');
-  const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'') : '';
-  return uploadToStorage(file, keyHint, ext || 'mp4');
-}
-/* ---- cleans up the file a background/hero image or video is REPLACING (or being reset away
-   from), so old uploads don't keep silently piling up in Supabase Storage. Only ever deletes
-   something that actually lives in our own bucket (never an unrelated external URL), and only
-   once the new file has been saved successfully — so a failed upload never loses the old one. */
-function storagePathFromUrl(url){
-  if(!url) return null;
-  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
-  const i = url.indexOf(marker);
-  if(i===-1) return null;
-  return decodeURIComponent(url.slice(i+marker.length).split('?')[0]);
-}
-async function deleteOldStorageFile(oldUrl, newUrl){
-  if(!oldUrl || oldUrl===newUrl) return;
-  const path = storagePathFromUrl(oldUrl);
-  if(!path) return;
-  try{ await sb.storage.from(STORAGE_BUCKET).remove([path]); }
-  catch(err){ console.error('old media cleanup failed', err); } // cleanup is best-effort; never block the UI on it
 }
 const SITE_SETTINGS_LS_KEY = 'vses_site_settings';
 async function loadSiteSettings(){
@@ -2368,7 +2269,7 @@ function screenAdminDashboard(){
   return `
   <div class="admin-layout">
     <div class="admin-nav">
-      ${nav.map(([id,ic,label])=>`<button class="${tab===id?'active':''}" data-navto="${id}" title="${label.replace(/&amp;/g,'&')}">${ic}<span class="label">${label}</span></button>`).join('')}
+      ${nav.map(([id,ic,label])=>`<button class="${tab===id?'active':''}" data-navto="${id}">${ic} ${label}</button>`).join('')}
     </div>
     <div>${adminContent(tab)}</div>
   </div>`;
@@ -2560,15 +2461,7 @@ update public.settings set
   bg_hero = bg_login, bg_hero_blur = bg_login_blur, bg_hero_dim = bg_login_dim, bg_hero_type = bg_login_type
 where id = 'site' and bg_hero is null and bg_login is not null;
 
--- text boxes on the hero page reuse the existing hero_boxes column above — no extra column needed
-
--- Storage bucket for uploaded images/videos (run this too, once). Without this, uploads fail.
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('site-media', 'site-media', true, 26214400)
-on conflict (id) do update set public = true, file_size_limit = 26214400;
-drop policy if exists "site-media all" on storage.objects;
-create policy "site-media all" on storage.objects
-  for all using (bucket_id = 'site-media') with check (bucket_id = 'site-media');</pre>
+-- text boxes on the hero page reuse the existing hero_boxes column above — no extra column needed</pre>
   </details>`;
   const mLook = all.match(/<!--@look-->([\s\S]*?)<!--@\/look-->/);
   const lookCards = mLook ? mLook[1] : '';
@@ -2716,18 +2609,16 @@ function pickBoxMedia(id, kind){
     document.body.appendChild(_boxFileInput);
     _boxFileInput.addEventListener('change', async ()=>{
       const file = _boxFileInput.files && _boxFileInput.files[0];
-      const target = _boxFileTarget, kind = _boxFileKind;
       _boxFileInput.value = '';
-      if(!file || !target) return;
-      showConfirmToast(kind==='video' ? 'Uploading video…' : 'Uploading image…');
+      if(!file || !_boxFileTarget) return;
       try{
-        const url = kind==='video'
-          ? await uploadVideoToStorage(file, 'hero-box')
-          : await uploadImageToStorage(file, 'hero-box', {maxW:1200, maxH:1200, quality:0.8});
+        const url = _boxFileKind==='video'
+          ? await fileToDataUrl(file, {video:true})
+          : await fileToDataUrl(file, {maxW:1200, maxH:1200, quality:0.8});
         const list = (Array.isArray(SITE_SETTINGS.heroBoxes) ? SITE_SETTINGS.heroBoxes : []).slice();
-        const b = list.find(x=>x.id===target);
-        if(b){ b.url = url; b.type = kind; }
-        saveSiteSettingPartial({heroBoxes:list}, kind==='video' ? 'Video added to box' : 'Image added to box', {rerender:false});
+        const b = list.find(x=>x.id===_boxFileTarget);
+        if(b){ b.url = url; b.type = _boxFileKind; }
+        saveSiteSettingPartial({heroBoxes:list}, _boxFileKind==='video' ? 'Video added to box' : 'Image added to box', {rerender:false});
         refreshHeroPreview();
       }catch(err){ alert(err && err.message ? err.message : 'This file could not be used.'); }
     });
@@ -2949,37 +2840,28 @@ function bindBrandingSettings(){
   document.querySelectorAll('input[data-file-img]').forEach(inp=>inp.addEventListener('change', async ()=>{
     const key = inp.getAttribute('data-file-img');
     const file = inp.files && inp.files[0];
-    inp.value = '';
     if(!file) return;
-    const oldUrl = bgCfg(key).url;
-    showConfirmToast('Uploading image…');
     try{
-      const url = await uploadImageToStorage(file, 'bg-'+key, {maxW:1600, maxH:1600, quality:0.8});
+      const url = await fileToDataUrl(file, {maxW:1600, maxH:1600, quality:0.78});
       saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'image'}, 'Image applied');
-      deleteOldStorageFile(oldUrl, url); // old image/video for this slot is no longer used anywhere — remove it from storage
     }catch(err){ alert(err && err.message ? err.message : 'This image could not be used.'); }
+    inp.value = '';
   }));
   document.querySelectorAll('input[data-file-vid]').forEach(inp=>inp.addEventListener('change', async ()=>{
     const key = inp.getAttribute('data-file-vid');
     const file = inp.files && inp.files[0];
-    inp.value = '';
     if(!file) return;
-    const oldUrl = bgCfg(key).url;
-    showConfirmToast('Uploading video…');
     try{
-      const url = await uploadVideoToStorage(file, 'bg-'+key);
+      const url = await fileToDataUrl(file, {video:true});
       saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'video'}, 'Video applied');
-      deleteOldStorageFile(oldUrl, url); // the video being replaced is gone from view everywhere — remove it from storage too
     }catch(err){ alert(err && err.message ? err.message : 'This video could not be used.'); }
+    inp.value = '';
   }));
   document.querySelectorAll('[data-reset]').forEach(btn=>btn.addEventListener('click', ()=>{
     const key = btn.getAttribute('data-reset');
     if(key==='logo'){ saveSiteSettingPartial({logoImg:''}, 'Default logo restored'); return; }
-    const m = BG_META.find(x=>x.key===key) || (key==='hero' ? HERO_BG_META : null);
-    if(!m) return;
-    const oldUrl = bgCfg(key).url, P = capKey(key);
+    const m = BG_META.find(x=>x.key===key), P = capKey(key);
     saveSiteSettingPartial({['bg'+P]:'', ['bg'+P+'Type']:'image', ['bg'+P+'Blur']:m.blur, ['bg'+P+'Dim']:m.dim}, 'Default look restored');
-    deleteOldStorageFile(oldUrl, ''); // default has no file of its own — drop whatever was uploaded here
   }));
   /* sliders: preview live while dragging, save when released */
   document.querySelectorAll('input[data-range]').forEach(r=>{
