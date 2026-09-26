@@ -244,17 +244,52 @@ tbody tr:hover{background:var(--panel-2);}
 .empty .icon{font-size:34px;margin-bottom:10px;}
 
 /* ---- admin layout ---- */
-.admin-layout{display:grid;grid-template-columns:210px 1fr;gap:22px;align-items:start;}
-@media (max-width:760px){.admin-layout{grid-template-columns:1fr;}}
-.admin-nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px;position:sticky;top:78px;}
-@media (max-width:760px){.admin-nav{position:static;display:flex;overflow-x:auto;gap:6px;padding:8px;}}
-.admin-nav button{
-  display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;border:none;color:var(--muted);
-  padding:10px 12px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:2px;white-space:nowrap;
+.admin-layout{display:block;}
+
+/* Logo itself is the sidebar trigger for admins (no separate button). */
+.brand-clickable{cursor:pointer;border-radius:var(--radius-sm);padding:4px 8px;margin:-4px -8px;transition:.15s background;}
+.brand-clickable:hover,.brand-clickable:focus-visible{background:var(--panel-2);outline:none;}
+
+/* Sidebar sits strictly between the header and footer bars — its top is
+   pinned to the measured header height (--hdr-h, set from JS) and it
+   never overlaps either bar: both the header (z-index 20) and the
+   footer (z-index 16) are stacked above it (z-index 15). It slides in
+   left→right on open and reverses right→left on close, with a slow,
+   clearly-visible motion. There is no dimming backdrop and nothing is
+   ever disabled underneath — instead, the open section itself shrinks
+   to fit the remaining width (see main.admin-sidebar-open below) and
+   stays fully usable while the sidebar is open. */
+.admin-sidebar{
+  position:fixed;left:0;top:var(--hdr-h,64px);height:calc(100vh - var(--hdr-h,64px));
+  width:var(--sidebar-w,272px);max-width:84vw;
+  background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;z-index:15;
+  transform:translateX(-100%);transition:transform .55s cubic-bezier(.22,.61,.36,1);
+  box-shadow:0 0 70px rgba(0,0,0,.45);
 }
-@media (max-width:760px){.admin-nav button{width:auto;margin-bottom:0;}}
+.admin-sidebar.open{transform:translateX(0);}
+.admin-nav{display:flex;flex-direction:column;gap:2px;padding:14px 10px;overflow-y:auto;}
+.admin-nav button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;border:none;color:var(--muted);
+  padding:11px 12px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:.2s background,.2s color;
+}
+.admin-nav button .ic{
+  width:34px;height:34px;flex-shrink:0;border-radius:9px;background:var(--panel-2);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:.2s background,.2s color;
+}
+.admin-nav button .ic svg{width:16px;height:16px;}
 .admin-nav button:hover{background:var(--panel-2);color:var(--text);}
+.admin-nav button:hover .ic{background:var(--line-2);color:var(--text);}
 .admin-nav button.active{background:var(--amber-soft);color:var(--amber);}
+.admin-nav button.active .ic{background:var(--amber);color:#211404;}
+
+/* The open section shrinks to fit beside the sidebar (same slow motion,
+   so both move together) instead of being covered or disabled; it
+   returns to full width the moment the sidebar closes. */
+main{transition:margin-left .55s cubic-bezier(.22,.61,.36,1);}
+body.admin-sidebar-open main{margin-left:var(--sidebar-w,272px);}
+
 
 .item-row{
   display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;
@@ -534,10 +569,8 @@ body{
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
-/* Admin nav — active glow + hover nudge */
+/* Admin nav — active glow */
 .admin-nav button.active{ box-shadow:inset 0 0 0 1px var(--amber-soft); }
-.admin-nav button{ transition:.15s background, .15s color, .15s transform; }
-.admin-nav button:hover{ transform:translateX(2px); }
 
 /* Score ring — pop-in entrance */
 .score-ring{ animation:ringPop .5s cubic-bezier(.34,1.56,.64,1) both; }
@@ -550,7 +583,7 @@ body{
 @keyframes badgePulse{ 0%,100%{ box-shadow:0 0 0 0 var(--amber-soft); } 50%{ box-shadow:0 0 0 5px transparent; } }
 
 /* ---- professional footer ---- */
-.site-footer{ margin-top:40px; position:relative; background:var(--panel); border-top:1px solid var(--line); }
+.site-footer{ margin-top:40px; position:relative; z-index:16; background:var(--panel); border-top:1px solid var(--line); }
 .site-footer::before{
   content:''; position:absolute; top:-1px; left:0; right:0; height:1px;
   background:linear-gradient(90deg, transparent, var(--amber) 20%, var(--blue) 55%, transparent 90%);
@@ -620,7 +653,8 @@ body{
   .q-edit-row .qtop{ flex-wrap:wrap; }
 
   /* admin section nav */
-  .admin-nav button{ font-size:12.5px; padding:9px 11px; }
+  .admin-nav button{ font-size:12.5px; padding:9px 11px; gap:10px; }
+  .admin-nav button .ic{ width:32px; height:32px; border-radius:9px; }
 
   /* results table — smaller but still fully legible, scrolls horizontally */
   table{ font-size:12.5px; }
@@ -983,7 +1017,8 @@ const ICONS = {
   trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
   lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
   unlock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.6-1.8"/></svg>',
-  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 000-3l-1-.3a7.4 7.4 0 00-.8-1.9l.5-.9a1.7 1.7 0 00-2.4-2.4l-.9.5a7.4 7.4 0 00-1.9-.8l-.3-1a1.7 1.7 0 00-3 0l-.3 1a7.4 7.4 0 00-1.9.8l-.9-.5a1.7 1.7 0 00-2.4 2.4l.5.9a7.4 7.4 0 00-.8 1.9l-1 .3a1.7 1.7 0 000 3l1 .3a7.4 7.4 0 00.8 1.9l-.5.9a1.7 1.7 0 002.4 2.4l.9-.5a7.4 7.4 0 001.9.8l.3 1a1.7 1.7 0 003 0l.3-1a7.4 7.4 0 001.9-.8l.9.5a1.7 1.7 0 002.4-2.4l-.5-.9a7.4 7.4 0 00.8-1.9l1-.3z"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7L5.6 5.6"/></svg>',
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
   mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
   phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 10.8a15.5 15.5 0 006.6 6.6l2.2-2.2a1.5 1.5 0 011.5-.4c1 .3 2.1.5 3.2.5a1.5 1.5 0 011.5 1.5V20a1.5 1.5 0 01-1.5 1.5C11.6 21.5 2.5 12.4 2.5 3.5A1.5 1.5 0 014 2h3.2a1.5 1.5 0 011.5 1.5c0 1.1.2 2.2.5 3.2a1.5 1.5 0 01-.4 1.5l-2.2 2.2z"/></svg>',
   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>'
@@ -1322,6 +1357,79 @@ function fileToDataUrl(file, opt){
     fr.readAsDataURL(file);
   });
 }
+/* ---- Storage-backed uploads for header/footer/hero/site backgrounds and hero-box media ----
+   These used to be saved as base64 text directly in the settings row. That silently broke for
+   anything but small files: a video easily blew past both the browser's localStorage quota and
+   Supabase's request-size limit, so the save failed quietly and the video vanished on refresh.
+   Uploading the actual file to Supabase Storage and saving only its (short) URL fixes both. */
+const STORAGE_BUCKET = 'site-media';
+function canvasResizeToBlob(file, opt){
+  return new Promise((resolve, reject)=>{
+    if(!file || !/^image\//.test(file.type||'')){ reject(new Error('Please choose an image file (PNG, JPG or WebP).')); return; }
+    const fr = new FileReader();
+    fr.onerror = ()=>reject(new Error('This file could not be read.'));
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>reject(new Error('This image could not be opened. Please try a PNG or JPG.'));
+      img.onload = ()=>{
+        try{
+          let sw = img.naturalWidth || 512, sh = img.naturalHeight || 512;
+          const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          const r = Math.min(1, opt.maxW/sw, opt.maxH/sh);
+          c.width = Math.max(1, Math.round(sw*r)); c.height = Math.max(1, Math.round(sh*r));
+          ctx.fillStyle = '#0A0F1C'; ctx.fillRect(0,0,c.width,c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(blob=>{ blob ? resolve(blob) : reject(new Error('This image could not be processed.')); }, 'image/jpeg', opt.quality||0.8);
+        }catch(e){ reject(e); }
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function uploadToStorage(fileOrBlob, keyHint, ext){
+  const path = `${keyHint}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, fileOrBlob, {
+    upsert: true, contentType: fileOrBlob.type || undefined, cacheControl: '31536000'
+  });
+  if(upErr){
+    const raw = upErr.message || '';
+    throw new Error(/bucket not found/i.test(raw)
+      ? 'Storage isn\'t set up yet for this site. Please run the storage setup SQL (see "For your developer" below), then try again.'
+      : (raw || 'Upload failed. Please try again.'));
+  }
+  const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  return pub.publicUrl;
+}
+async function uploadImageToStorage(file, keyHint, opt){
+  const blob = await canvasResizeToBlob(file, opt);
+  return uploadToStorage(blob, keyHint, 'jpg');
+}
+async function uploadVideoToStorage(file, keyHint){
+  if(!file || !/^video\//.test(file.type||'')) throw new Error('Please choose a video file (MP4 or WebM).');
+  if(file.size > 20*1024*1024) throw new Error('This video is larger than 20 MB. Please trim it or compress it first — smaller clips load faster for guards on mobile data.');
+  const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'') : '';
+  return uploadToStorage(file, keyHint, ext || 'mp4');
+}
+/* ---- cleans up the file a background/hero image or video is REPLACING (or being reset away
+   from), so old uploads don't keep silently piling up in Supabase Storage. Only ever deletes
+   something that actually lives in our own bucket (never an unrelated external URL), and only
+   once the new file has been saved successfully — so a failed upload never loses the old one. */
+function storagePathFromUrl(url){
+  if(!url) return null;
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if(i===-1) return null;
+  return decodeURIComponent(url.slice(i+marker.length).split('?')[0]);
+}
+async function deleteOldStorageFile(oldUrl, newUrl){
+  if(!oldUrl || oldUrl===newUrl) return;
+  const path = storagePathFromUrl(oldUrl);
+  if(!path) return;
+  try{ await sb.storage.from(STORAGE_BUCKET).remove([path]); }
+  catch(err){ console.error('old media cleanup failed', err); } // cleanup is best-effort; never block the UI on it
+}
 const SITE_SETTINGS_LS_KEY = 'vses_site_settings';
 async function loadSiteSettings(){
   try{
@@ -1574,7 +1682,8 @@ function render(){
   const animKey = [S.screen,S.adminTab,S.adminMonthId,S.adminExamId,S.profileMobile,S.attemptId].join('|');
   const isNewScreen = animKey !== LAST_RENDER_KEY;
   LAST_RENDER_KEY = animKey;
-  app.innerHTML = topbarHtml() + '<main><div class="wrap'+(isNewScreen?' page-enter':'')+'" id="mainwrap"></div></main>' + (SITE_SETTINGS.footerEnabled!==false ? footerHtml() : '');
+  app.innerHTML = topbarHtml() + adminSidebarHtml() + '<main><div class="wrap'+(isNewScreen?' page-enter':'')+'" id="mainwrap"></div></main>' + (SITE_SETTINGS.footerEnabled!==false ? footerHtml() : '');
+  document.body.classList.toggle('admin-sidebar-open', !!(SESSION && SESSION.role==='admin' && S.screen==='admin-dashboard' && S.adminNavOpen));
   const mount = document.getElementById('mainwrap');
   mount.innerHTML = renderScreen();
   syncBgMedia();
@@ -1634,9 +1743,11 @@ function topbarHtml(){
   }
   const hdrBg = barBgHtml('header');
   const clock = SITE_SETTINGS.showClock ? `<div class="hdr-clock" id="hdrClock" data-m="${Math.floor(Date.now()/60000)}">${clockHtml()}</div>` : '';
+  const showAdminMenuBtn = SESSION && SESSION.role==='admin' && S.screen==='admin-dashboard';
+  const brandAttrs = showAdminMenuBtn ? ' class="brand brand-clickable" data-navtoggle role="button" tabindex="0" title="Menu"' : ' class="brand"';
   return `<div class="topbar${bgCfg('header').url?' has-bg':''}">${hdrBg}<div class="topbar-inner">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <div class="brand">${brandIconHtml('')}<div>VSES<small>Vedanta Security Examination System</small></div></div>
+      <div${brandAttrs}>${brandIconHtml('')}<div>VSES<small>Vedanta Security Examination System</small></div></div>
     </div>
     ${clock}
     ${right}
@@ -1668,6 +1779,10 @@ function footerHtml(){
 }
 
 let LAST_HOME_CLICK = 0;
+let WINDOW_RESIZE_BOUND = false;
+/* Matches the sidebar's CSS transition duration (.55s) — the actual tab
+   switch is deferred until the close animation has visibly finished. */
+const SIDEBAR_ANIM_MS = 560;
 function bindGlobal(){
   document.querySelectorAll('[data-act="home"]').forEach(el=>{
     /* double-click used to fire the click handler twice in a row (and could
@@ -1683,6 +1798,45 @@ function bindGlobal(){
     });
   });
   document.querySelectorAll('[data-act="logout"]').forEach(el=>el.addEventListener('click',()=>{ clearSession(); enterApp('home'); }));
+  document.querySelectorAll('[data-navtoggle]').forEach(el=>{
+    const toggle = ()=> setAdminSidebarOpen(!S.adminNavOpen);
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } });
+  });
+  document.querySelectorAll('.admin-sidebar [data-navto]').forEach(el=>el.addEventListener('click',()=>{
+    const id = el.getAttribute('data-navto');
+    setAdminSidebarOpen(false); // slides shut + the section expands back to full width
+    setTimeout(()=>{ resetQB(); goRoot({adminTab:id, adminNavOpen:false}); }, SIDEBAR_ANIM_MS);
+  }));
+  syncHeaderHeightVar();
+  syncSidebarWidthVar();
+  if(!WINDOW_RESIZE_BOUND){
+    WINDOW_RESIZE_BOUND = true;
+    window.addEventListener('resize', ()=>{ syncHeaderHeightVar(); syncSidebarWidthVar(); });
+  }
+}
+/* Toggles the sidebar/section-shrink directly on the existing DOM nodes
+   (rather than via patch->render) so the slide/shrink transition is
+   actually visible — a full re-render would recreate the elements
+   already in their final state and skip the animation entirely. */
+function setAdminSidebarOpen(open){
+  S.adminNavOpen = open;
+  const sidebar = document.querySelector('.admin-sidebar');
+  if(sidebar) sidebar.classList.toggle('open', open);
+  document.body.classList.toggle('admin-sidebar-open', open);
+}
+/* keeps the sidebar/backdrop's top offset (--hdr-h) matched to the
+   topbar's real rendered height, which varies across breakpoints. */
+function syncHeaderHeightVar(){
+  const tb = document.querySelector('.topbar');
+  if(tb) document.documentElement.style.setProperty('--hdr-h', tb.offsetHeight+'px');
+}
+/* keeps the section's shrink amount (--sidebar-w) matched to the
+   sidebar's real rendered width, since it's capped at 84vw on narrow
+   screens and won't always be the full 272px. */
+function syncSidebarWidthVar(){
+  const sb = document.querySelector('.admin-sidebar');
+  if(sb) document.documentElement.style.setProperty('--sidebar-w', sb.offsetWidth+'px');
 }
 
 /* ============ SCREEN ROUTER ============ */
@@ -2260,18 +2414,26 @@ function bindAdminAuth(){
 /* ============ ADMIN DASHBOARD ============ */
 function screenAdminDashboard(){
   const tab = S.adminTab || 'months';
+  return `<div class="admin-layout">${adminContent(tab)}</div>`;
+}
+/* Full-height slide-in sidebar (admin only). Rendered as global chrome
+   alongside the topbar — not inside #mainwrap — so it overlays every
+   admin sub-screen and isn't wiped out by screen-to-screen re-renders. */
+function adminSidebarHtml(){
+  if(!(SESSION && SESSION.role==='admin' && S.screen==='admin-dashboard')) return '';
+  const tab = S.adminTab || 'months';
+  const navOpen = !!S.adminNavOpen;
   const nav = [
     ['months',icon('calendar',15),'Months &amp; Exams'],
     ['masterdata',icon('chart',15),'Master Data'],
-    ['results',icon('chart',15),'Results'],
+    ['results',icon('clipboard',15),'Results'],
     ['settings',icon('gear',15),'Site Settings'],
   ];
   return `
-  <div class="admin-layout">
+  <div class="admin-sidebar${navOpen?' open':''}">
     <div class="admin-nav">
-      ${nav.map(([id,ic,label])=>`<button class="${tab===id?'active':''}" data-navto="${id}">${ic} ${label}</button>`).join('')}
+      ${nav.map(([id,ic,label])=>`<button class="${tab===id?'active':''}" data-navto="${id}" title="${label.replace(/&amp;/g,'&')}">${ic}<span class="label">${label}</span></button>`).join('')}
     </div>
-    <div>${adminContent(tab)}</div>
   </div>`;
 }
 function adminContent(tab){
@@ -2284,7 +2446,6 @@ function adminContent(tab){
   return adminMonths();
 }
 function bindAdminDashboard(){
-  document.querySelectorAll('[data-navto]').forEach(el=>el.addEventListener('click',()=>{ resetQB(); goRoot({adminTab:el.getAttribute('data-navto')}); }));
   bindAdminContent(S.adminTab||'months');
 }
 function bindAdminContent(tab){
@@ -2461,7 +2622,15 @@ update public.settings set
   bg_hero = bg_login, bg_hero_blur = bg_login_blur, bg_hero_dim = bg_login_dim, bg_hero_type = bg_login_type
 where id = 'site' and bg_hero is null and bg_login is not null;
 
--- text boxes on the hero page reuse the existing hero_boxes column above — no extra column needed</pre>
+-- text boxes on the hero page reuse the existing hero_boxes column above — no extra column needed
+
+-- Storage bucket for uploaded images/videos (run this too, once). Without this, uploads fail.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('site-media', 'site-media', true, 26214400)
+on conflict (id) do update set public = true, file_size_limit = 26214400;
+drop policy if exists "site-media all" on storage.objects;
+create policy "site-media all" on storage.objects
+  for all using (bucket_id = 'site-media') with check (bucket_id = 'site-media');</pre>
   </details>`;
   const mLook = all.match(/<!--@look-->([\s\S]*?)<!--@\/look-->/);
   const lookCards = mLook ? mLook[1] : '';
@@ -2609,16 +2778,18 @@ function pickBoxMedia(id, kind){
     document.body.appendChild(_boxFileInput);
     _boxFileInput.addEventListener('change', async ()=>{
       const file = _boxFileInput.files && _boxFileInput.files[0];
+      const target = _boxFileTarget, kind = _boxFileKind;
       _boxFileInput.value = '';
-      if(!file || !_boxFileTarget) return;
+      if(!file || !target) return;
+      showConfirmToast(kind==='video' ? 'Uploading video…' : 'Uploading image…');
       try{
-        const url = _boxFileKind==='video'
-          ? await fileToDataUrl(file, {video:true})
-          : await fileToDataUrl(file, {maxW:1200, maxH:1200, quality:0.8});
+        const url = kind==='video'
+          ? await uploadVideoToStorage(file, 'hero-box')
+          : await uploadImageToStorage(file, 'hero-box', {maxW:1200, maxH:1200, quality:0.8});
         const list = (Array.isArray(SITE_SETTINGS.heroBoxes) ? SITE_SETTINGS.heroBoxes : []).slice();
-        const b = list.find(x=>x.id===_boxFileTarget);
-        if(b){ b.url = url; b.type = _boxFileKind; }
-        saveSiteSettingPartial({heroBoxes:list}, _boxFileKind==='video' ? 'Video added to box' : 'Image added to box', {rerender:false});
+        const b = list.find(x=>x.id===target);
+        if(b){ b.url = url; b.type = kind; }
+        saveSiteSettingPartial({heroBoxes:list}, kind==='video' ? 'Video added to box' : 'Image added to box', {rerender:false});
         refreshHeroPreview();
       }catch(err){ alert(err && err.message ? err.message : 'This file could not be used.'); }
     });
@@ -2840,28 +3011,37 @@ function bindBrandingSettings(){
   document.querySelectorAll('input[data-file-img]').forEach(inp=>inp.addEventListener('change', async ()=>{
     const key = inp.getAttribute('data-file-img');
     const file = inp.files && inp.files[0];
-    if(!file) return;
-    try{
-      const url = await fileToDataUrl(file, {maxW:1600, maxH:1600, quality:0.78});
-      saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'image'}, 'Image applied');
-    }catch(err){ alert(err && err.message ? err.message : 'This image could not be used.'); }
     inp.value = '';
+    if(!file) return;
+    const oldUrl = bgCfg(key).url;
+    showConfirmToast('Uploading image…');
+    try{
+      const url = await uploadImageToStorage(file, 'bg-'+key, {maxW:1600, maxH:1600, quality:0.8});
+      saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'image'}, 'Image applied');
+      deleteOldStorageFile(oldUrl, url); // old image/video for this slot is no longer used anywhere — remove it from storage
+    }catch(err){ alert(err && err.message ? err.message : 'This image could not be used.'); }
   }));
   document.querySelectorAll('input[data-file-vid]').forEach(inp=>inp.addEventListener('change', async ()=>{
     const key = inp.getAttribute('data-file-vid');
     const file = inp.files && inp.files[0];
-    if(!file) return;
-    try{
-      const url = await fileToDataUrl(file, {video:true});
-      saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'video'}, 'Video applied');
-    }catch(err){ alert(err && err.message ? err.message : 'This video could not be used.'); }
     inp.value = '';
+    if(!file) return;
+    const oldUrl = bgCfg(key).url;
+    showConfirmToast('Uploading video…');
+    try{
+      const url = await uploadVideoToStorage(file, 'bg-'+key);
+      saveSiteSettingPartial({['bg'+capKey(key)]:url, ['bg'+capKey(key)+'Type']:'video'}, 'Video applied');
+      deleteOldStorageFile(oldUrl, url); // the video being replaced is gone from view everywhere — remove it from storage too
+    }catch(err){ alert(err && err.message ? err.message : 'This video could not be used.'); }
   }));
   document.querySelectorAll('[data-reset]').forEach(btn=>btn.addEventListener('click', ()=>{
     const key = btn.getAttribute('data-reset');
     if(key==='logo'){ saveSiteSettingPartial({logoImg:''}, 'Default logo restored'); return; }
-    const m = BG_META.find(x=>x.key===key), P = capKey(key);
+    const m = BG_META.find(x=>x.key===key) || (key==='hero' ? HERO_BG_META : null);
+    if(!m) return;
+    const oldUrl = bgCfg(key).url, P = capKey(key);
     saveSiteSettingPartial({['bg'+P]:'', ['bg'+P+'Type']:'image', ['bg'+P+'Blur']:m.blur, ['bg'+P+'Dim']:m.dim}, 'Default look restored');
+    deleteOldStorageFile(oldUrl, ''); // default has no file of its own — drop whatever was uploaded here
   }));
   /* sliders: preview live while dragging, save when released */
   document.querySelectorAll('input[data-range]').forEach(r=>{
